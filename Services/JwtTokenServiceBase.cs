@@ -138,9 +138,10 @@ namespace Common.Classes
 
 	public interface ITokenUser
 	{
-		public string Id { get; }
-		public string Roles  { get; } //list of roles separated by commas
-		public bool IsDisabled { get; }
+        public string Id { get; }
+        public string Name { get; }
+        public string Roles { get; } //list of roles separated by commas
+        public bool IsDisabled { get; }
 		public DateTime? RevokeTokensOlderThan { get; } // can be null to NOT expire tokens manually for user
 	}
 
@@ -207,7 +208,7 @@ namespace Common.Classes
 
 			// Make the bearer token
 			// we add the creation date (created by clientId NOT by refresh - we add this back in during refresh)
-			string access_token = MakeToken(tok_req.ClientId, roles)
+			string access_token = MakeToken(user.Name, roles)
 									.AddClaim(_jwtSettings.Claim_TokenCreatedDate, created_dt.Ticks.ToString())
 									.AddClaim(ClaimTypes.NameIdentifier, user.Id)
 									.Build().Value;
@@ -225,7 +226,8 @@ namespace Common.Classes
 
 			await OnNewToken(user, resp);
 
-			_logger.LogInformation("Created new token for '{clientId}'", tok_req.ClientId);
+			_logger.LogInformation("Created new token for '{name}/{clientId}', roles: {roles}, tok uid: {tokid}"
+				, user.Name, user.Id, user.Roles, tok_req.ClientId);
 
 
 			return resp;
@@ -294,9 +296,15 @@ namespace Common.Classes
 			// or simply do something after the token is refreshed
 			await OnRefreshToken(user, tok_req, resp); // just a quick event for sub class
 			
-			_logger.LogInformation("Refreshed token for '{clientId}'", clientId);
+			//_logger.LogInformation("Refreshed token for '{clientId}'", clientId);
 
-			return resp;
+            _logger.LogInformation("Refreshed token for '{name}/{clientId}', roles: {roles}, [tok uid: {tokid}]"
+			    , user.Name, user.Id, user.Roles, clientId);
+
+
+
+
+            return resp;
 		
 		}
 
