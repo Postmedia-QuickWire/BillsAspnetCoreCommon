@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Common.JwtTokenSecurity; //<< very nice JWT builder class I ripped off somewhere
+using k8s.KubeConfigModels;
 
 namespace Common.Classes
 {
@@ -208,6 +209,7 @@ namespace Common.Classes
 
 			// Make the bearer token
 			// we add the creation date (created by clientId NOT by refresh - we add this back in during refresh)
+			// sept 2022 bug, I was creating the token using the PASSED request name, this caused the refresh token to recreate using this name 
 			string access_token = MakeToken(user.Name, roles)
 									.AddClaim(_jwtSettings.Claim_TokenCreatedDate, created_dt.Ticks.ToString())
 									.AddClaim(ClaimTypes.NameIdentifier, user.Id)
@@ -226,8 +228,8 @@ namespace Common.Classes
 
 			await OnNewToken(user, resp);
 
-			_logger.LogInformation("Created new token for '{name}/{clientId}', roles: {roles}, tok uid: {tokid}"
-				, user.Name, user.Id, user.Roles, tok_req.ClientId);
+			_logger.LogInformation("Created new token for '{name}/{clientId}', roles: {roles}, tok uid: {tokid}, {key}"
+				, user.Name, user.Id, user.Roles, tok_req.ClientId, tok_req.ClientSecret);
 
 
 			return resp;
@@ -253,8 +255,16 @@ namespace Common.Classes
 				throw new ApiTokenException("token is too old to refresh");
 
 			clientId = tuser.Identity.Name;
+            string accountId_str = tuser.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-			ITokenUser user = await GetTokenUserForId (clientId); // will throw
+            if (String.IsNullOrEmpty(accountId_str))
+                throw new ApiTokenException($"token missing account id for '{clientId}'", "refresh error");
+
+            int accountId = Convert.ToInt32(accountId_str);
+
+            _logger.LogInformation(">> refresh user identity: {u}", clientId);
+
+            ITokenUser user = await GetTokenUserForId (clientId); // will throw
 
 			if (user == null)
 				throw new ApiTokenException($"GetTokenUserForId returned null '{clientId}'", "user not found");
@@ -292,7 +302,7 @@ namespace Common.Classes
 			resp.TokenType = "Bearer";
 			resp.Msg = "ok";
 
-			// allow sub class to prevent token refresh (by thowing an ApiTokenException)
+			// allow sub class to prevent token refresh (by throwing an ApiTokenException)
 			// or simply do something after the token is refreshed
 			await OnRefreshToken(user, tok_req, resp); // just a quick event for sub class
 			
