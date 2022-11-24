@@ -365,11 +365,11 @@ namespace Common.Classes
 
 		protected virtual string MakeHash(string val)
 		{
-			return bfunct.GetHashString(val, _jwtSettings.HashSalt);
+			return BFunct.GetHashString(val, _jwtSettings.HashSalt);
 		}
 		protected virtual string MakeRefreshToken(string token, DateTime tokenCreationDate)
 		{
-			return bfunct.GetHashString(token, $"{tokenCreationDate.ToString("o")}-{_jwtSettings.HashSalt}");
+			return BFunct.GetHashString(token, $"{tokenCreationDate.ToString("o")}-{_jwtSettings.HashSalt}");
 		}
 	}
 }
