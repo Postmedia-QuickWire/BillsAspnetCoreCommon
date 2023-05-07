@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Common.JwtTokenSecurity; //<< very nice JWT builder class I ripped off somewhere
+using System.Collections.Generic;
 //using k8s.KubeConfigModels;
 
 namespace Common.Classes
