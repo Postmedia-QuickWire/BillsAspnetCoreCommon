@@ -13,7 +13,7 @@ using System.Collections.Generic;
 namespace Common.Classes
 {
     /// <summary>
-    /// here it is, the one JWT classs for all seasons
+    /// here it is, the one JWT class for all seasons
     /// 
     /// this file contains;
     /// - the token request and response models
@@ -24,12 +24,12 @@ namespace Common.Classes
     /// JwtAppOptions can be added to your AppSettings.json model and passed from your BearerTokenServiceBase sub class
     /// throw ApiTokenException to prevent token creation or refresh 
     /// You must implement ITokenUser on your own user model
-    /// and imherit BearerTokenServiceBase in your own BearerTokenService class
+    /// and inherit BearerTokenServiceBase in your own BearerTokenService class
     ///		then override (minimally) both:
-    ///		AuthentcateTokenUser(TokenRequest tok_req);
+    ///		AuthenticateTokenUser(TokenRequest tok_req);
     ///		GetTokenUserForId(string id);
     ///		
-    /// and finally, add as a scopped service in Startup.cs
+    /// and finally, add as a scoped service in Startup.cs
     /// 
     /// services.AddScoped&lt;IBearerTokenService, BearerTokenService&gt;();
     /// 
@@ -162,7 +162,7 @@ namespace Common.Classes
 
 
         // must override to authenticate the user for a new token request
-        protected abstract Task<ITokenUser> AuthentcateTokenUser(TokenRequest tok_req);
+        protected abstract Task<ITokenUser> AuthenticateTokenUser(TokenRequest tok_req);
 
         // must override to fetch the user on a refresh token request
         protected abstract Task<ITokenUser> GetTokenUserForId(string id);
@@ -184,16 +184,27 @@ namespace Common.Classes
         public async Task<TokenResponse> NewToken(TokenRequest tok_req)
         {
             //_logger.LogDebug("NewToken Request: clientId=[{clientId}], clientSecret=[{clientSecret}]", tok_req.clientId, tok_req.clientSecret);
+
+            if (tok_req == null || String.IsNullOrEmpty(tok_req.ClientId) || String.IsNullOrEmpty(tok_req.ClientSecret))
+                throw new ApiTokenException("invalid null token request");
+
+            if (tok_req.ClientId.Length > 200 || tok_req.ClientSecret.Length > 200)
+                throw new ApiTokenException("invalid token request prop lengths");
+
+            if (tok_req.ClientId.Contains('<') || tok_req.ClientSecret.Contains('<'))
+                throw new ApiTokenException("invalid token request contains <");
+
+
             _logger.LogInformation("NewToken Request: clientId=[{clientId}]", tok_req.ClientId);
 
             if (string.IsNullOrWhiteSpace(tok_req.ClientId) || string.IsNullOrWhiteSpace(tok_req.ClientSecret))
                 throw new ApiTokenException("invalid token request params");
 
-            ITokenUser user = await AuthentcateTokenUser(tok_req);
+            ITokenUser user = await AuthenticateTokenUser(tok_req);
             // validate all user props
 
             if (user == null)
-                throw new ApiTokenException($"AuthentcateTokenUser return null '{tok_req.ClientId}'", "not authenticated");
+                throw new ApiTokenException($"AuthenticateTokenUser return null '{tok_req.ClientId}'", "not authenticated");
 
             if (user.IsDisabled)
                 throw new ApiTokenException($"api user account disabled '{tok_req.ClientId}'", "account disabled");
