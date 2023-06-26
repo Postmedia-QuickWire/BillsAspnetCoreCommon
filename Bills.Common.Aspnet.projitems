@@ -9,7 +9,6 @@
     <Import_RootNamespace>Bills.Common.Aspnet</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Classes\CaptchaImage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Classes\JwtTokenBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Classes\RequestPiplineTemplateMiddleware.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Classes\SwaggerAuthorized.cs" />
