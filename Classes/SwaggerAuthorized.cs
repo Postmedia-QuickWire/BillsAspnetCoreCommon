@@ -13,19 +13,24 @@ namespace Common.Classes
 	//https://github.com/domaindrivendev/Swashbuckle/issues/384
 	public static class SwaggerAuthorizeExtensions
 	{
-		public static IApplicationBuilder UseSwaggerAuthorized(this IApplicationBuilder builder)
+        // the redirectUrl WORKS for a refresh
+        // BUT the swagger page doesn't redirect when an api is selected from the dropdown
+        // so a big blank 401 page will do.
+        // this shows how to send parameters to the middleware though
+        public static IApplicationBuilder UseSwaggerAuthorized(this IApplicationBuilder builder) //, string redirectUrl)
 		{
-			return builder.UseMiddleware<SwaggerAuthorizedMiddleware>();
+			return builder.UseMiddleware<SwaggerAuthorizedMiddleware>(); //redirectUrl);
 		}
 	}
 	public class SwaggerAuthorizedMiddleware
 	{
 		private readonly RequestDelegate _next;
-
-		public SwaggerAuthorizedMiddleware(RequestDelegate next)
+        //private readonly string _redirectUrl;
+		public SwaggerAuthorizedMiddleware(RequestDelegate next) //, string redirectUrl)
 		{
 			_next = next;
-		}
+            //_redirectUrl = redirectUrl;
+        }
 
 		public async Task Invoke(HttpContext context)
 		{
@@ -36,6 +41,7 @@ namespace Common.Classes
 				context.Response.Headers[HeaderNames.Pragma] = "no-cache";
 				if (!context.User.Identity.IsAuthenticated)
 				{
+                    //context.Response.Redirect(_redirectUrl);
 					context.Response.StatusCode = StatusCodes.Status401Unauthorized;
 					return;
 				}
