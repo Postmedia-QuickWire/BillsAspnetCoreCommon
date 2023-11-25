@@ -112,11 +112,11 @@ namespace Common.Classes
 		private readonly IApiKeyService _ApiKeyService;
 
 		public ApiKeyAuthHandler(IOptionsMonitor<ApiKeyAuthOptions> options
-			, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock
+			, ILoggerFactory logger, UrlEncoder encoder //, ISystemClock clock
 			, IServiceProvider serviceProvider
 			, IApiKeyService ApiKeyService
 			)
-				: base(options, logger, encoder, clock)
+				: base(options, logger, encoder) //, clock)
 		{
 			ServiceProvider = serviceProvider;
 			_logger = logger.CreateLogger<ApiKeyAuthHandler>();
