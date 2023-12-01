@@ -290,7 +290,7 @@ namespace Common.Classes
                 userId = Convert.ToInt32(accountId_str);
             }
 
-            _logger.LogInformation(">> refresh user identity: {u}", clientId);
+            _logger.LogDebug(">> refresh user identity: {u}", clientId);
 
             ITokenUser user = await GetTokenUserForId(clientId); // will throw
 
@@ -337,6 +337,7 @@ namespace Common.Classes
 
             //_logger.LogInformation("Refreshed token for '{clientId}'", clientId);
 
+            // may be too noisy...
             _logger.LogInformation("Refreshed token for '{name}/{accid}:{clientId}', roles: {roles}, [tok uid: {tokid}]"
                 , user.Name, user.TokenAccountId, user.TokenUserId, String.Join(", ", user.GetAllRoles()), clientId);
 
