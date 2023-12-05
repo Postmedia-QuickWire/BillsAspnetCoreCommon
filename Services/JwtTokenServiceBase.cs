@@ -243,8 +243,8 @@ namespace Common.Classes
 
             await OnNewToken(user, resp);
 
-            _logger.LogInformation("Created new token for '{name}/{accid}:{clientId}', roles: {roles}, tok uid: {tokid}, {key}"
-                , user.Name, user.TokenAccountId, user.TokenUserId, String.Join(", ", user.GetAllRoles()), tok_req.ClientId, tok_req.ClientSecret);
+            _logger.LogInformation("Created new token for '{name}/{accid}:{clientId}', roles: {roles}, tok uid: {tokid}"
+                , user.Name, user.TokenAccountId, user.TokenUserId, String.Join(", ", user.GetAllRoles()), tok_req.ClientId);
 
 
             return resp;
