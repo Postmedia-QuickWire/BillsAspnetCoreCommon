@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Text;
 using System.Threading.Tasks;
+using System.Security.Policy;
 
 namespace Common.Services
 {
@@ -19,6 +20,8 @@ namespace Common.Services
 		string GetVal(string key);
 		string MakeMD5(string input, string salt_val = "");
 		public string HashPassword(string provided_pw, string salt_val = null);
+
+		public string LegacyHashPassword(string provided_pw, string salt_val = null);
 	}
 
 	public class CipherService : ICipherService
@@ -112,6 +115,16 @@ namespace Common.Services
 			}
 
 		}
+
+		public string LegacyHashPassword(string provided_pw, string salt_val = null)
+		{
+			var hasher = new SHA256Managed();
+			var bytes = hasher.ComputeHash(Encoding.ASCII.GetBytes(provided_pw + salt_val));
+			var s = Convert.ToBase64String(bytes);
+			return s;
+		}
+
+
 
 		public string HashPassword(string provided_pw, string salt_val = null)
 		{
