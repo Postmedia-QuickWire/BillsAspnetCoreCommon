@@ -152,9 +152,8 @@ namespace Common.Classes
 
 		protected override Task<AuthenticateResult> HandleAuthenticateAsync()
 		{
-			string path = OriginalPath.ToString().ToLower();
-			if (!path.Contains("/api/"))
-				return Task.FromResult(AuthenticateResult.NoResult());
+            if (!OriginalPath.StartsWithSegments("/api"))
+                return Task.FromResult(AuthenticateResult.NoResult());
 
 			var token = FetchToken(Request);
 			if (string.IsNullOrEmpty(token))
@@ -174,7 +173,7 @@ namespace Common.Classes
 			// the only claim required is Role, maybe Name
 
 			var claims = new List<Claim> { new Claim("token", token), new Claim(ClaimTypes.Name, user.Name), new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()) };
-			foreach (var role in user.Role.Split(new char[] { ',' }))
+			foreach (var role in user.Role.Split(','))
 				claims.Add(new Claim(ClaimTypes.Role, role));
 
 			var identity = new ClaimsIdentity(claims, nameof(ApiKeyAuthHandler));
