@@ -31,8 +31,8 @@ namespace Common.Classes
 		public const string AuthenticationScheme = "ApiKeyAuth";
 		public const string DefaultScheme = "ApiKeyAuth";
 
-		public const string HeaderName = "X-Auth-Token";
-		public const string CookieName = "X-Auth-Token";
+		public const string HeaderName = "X-Api-Key";
+		public const string CookieName = "X-Api-Key";
 		public const string UrlParamName = "apikey";
 	}
 
