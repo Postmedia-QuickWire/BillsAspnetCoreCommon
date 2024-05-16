@@ -69,32 +69,29 @@ namespace Common.Classes
 
 	public abstract class ApiKeyServiceBase : IApiKeyService
 	{
-		protected Dictionary<string, ApiUser> _ApiKeys;
-		private object _ApiKeysLock = new object();
+		protected ConcurrentDictionary<string, ApiUser> _ApiKeys;
 		public ApiKeyServiceBase() 
 		{
-			_ApiKeys = new Dictionary<string, ApiUser>();
+			_ApiKeys = new ConcurrentDictionary<string, ApiUser>();
 		}
 		// fetch the APiUser based on an api-key token
 		public virtual ApiUser FetchApiUser(string apikey)
 		{
 			ApiUser user;
 			var hashed_apikey = HashApiKey(apikey);
-			lock (_ApiKeysLock)
-			{
 				if (_ApiKeys.TryGetValue(hashed_apikey, out user))
 					return user;
-			}
 			return null;
 		}
 
 		// replace ALL api keys
 		public virtual void ReplaceApiKeys(Dictionary<string, ApiUser> apikeys)
 		{
-			lock (_ApiKeysLock)
-			{
-				_ApiKeys = apikeys;
-			}
+            _ApiKeys.Clear();
+            foreach (var key in apikeys.Keys)
+            {
+                _ApiKeys[key] = apikeys[key];
+            }
 		}
 
 		public abstract void ReLoadApiKeys();
