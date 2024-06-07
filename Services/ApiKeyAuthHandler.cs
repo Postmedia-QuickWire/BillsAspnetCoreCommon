@@ -26,158 +26,158 @@ using System.Collections.Concurrent;
 namespace Common.Classes
 {
 
-	public class ApiKeyAuthOptions : AuthenticationSchemeOptions
-	{
-		public const string AuthenticationScheme = "ApiKeyAuth";
-		public const string DefaultScheme = "ApiKeyAuth";
+    public class ApiKeyAuthOptions : AuthenticationSchemeOptions
+    {
+        public const string AuthenticationScheme = "ApiKeyAuth";
+        public const string DefaultScheme = "ApiKeyAuth";
 
-		public const string HeaderName = "X-Api-Key";
-		public const string CookieName = "X-Api-Key";
-		public const string UrlParamName = "apikey";
-	}
+        public const string HeaderName = "X-Api-Key";
+        public const string CookieName = "X-Api-Key";
+        public const string UrlParamName = "apikey";
+    }
 
-	public static class AuthenticationBuilderExtensions
-	{
-		public static AuthenticationBuilder AddApiKeySupport(this AuthenticationBuilder authenticationBuilder, Action<ApiKeyAuthOptions> options)
-		{
-			return authenticationBuilder.AddScheme<ApiKeyAuthOptions, ApiKeyAuthHandler>(ApiKeyAuthOptions.DefaultScheme, options);
-		}
-	}
+    public static class AuthenticationBuilderExtensions
+    {
+        public static AuthenticationBuilder AddApiKeySupport(this AuthenticationBuilder authenticationBuilder, Action<ApiKeyAuthOptions> options)
+        {
+            return authenticationBuilder.AddScheme<ApiKeyAuthOptions, ApiKeyAuthHandler>(ApiKeyAuthOptions.DefaultScheme, options);
+        }
+    }
 
-	public class ApiUser
-	{
-		// account ID link
-		public int Id { get; set; }  // as client type NameIdentifier
+    public class ApiUser
+    {
+        // account ID link
+        public int Id { get; set; }  // as client type NameIdentifier
 
-		// for logging
-		public string Name { get; set; }
+        // for logging
+        public string Name { get; set; }
 
-		// actual controller roles (can be comma separated, no spaces)
-		public string Role { get; set; }
-	}
+        // actual controller roles (can be comma separated, no spaces)
+        public string Role { get; set; }
+    }
 
-	public interface IApiKeyService
-	{
-		public ApiUser FetchApiUser(string apikey);
+    public interface IApiKeyService
+    {
+        public ApiUser FetchApiUser(string apikey);
 
-		public void ReLoadApiKeys();
+        public void ReLoadApiKeys();
 
-		public string GenerateApiKey();
+        public string GenerateApiKey();
 
-		public string HashApiKey(string apikey);
-	}
+        public string HashApiKey(string apikey);
+    }
 
-	public abstract class ApiKeyServiceBase : IApiKeyService
-	{
-		protected ConcurrentDictionary<string, ApiUser> _ApiKeys;
-		public ApiKeyServiceBase() 
-		{
-			_ApiKeys = new ConcurrentDictionary<string, ApiUser>();
-		}
-		// fetch the APiUser based on an api-key token
-		public virtual ApiUser FetchApiUser(string apikey)
-		{
-			ApiUser user;
-			var hashed_apikey = HashApiKey(apikey);
-				if (_ApiKeys.TryGetValue(hashed_apikey, out user))
-					return user;
-			return null;
-		}
+    public abstract class ApiKeyServiceBase : IApiKeyService
+    {
+        protected ConcurrentDictionary<string, ApiUser> _ApiKeys;
+        public ApiKeyServiceBase()
+        {
+            _ApiKeys = new ConcurrentDictionary<string, ApiUser>();
+        }
+        // fetch the APiUser based on an api-key token
+        public virtual ApiUser FetchApiUser(string apikey)
+        {
+            ApiUser user;
+            var hashed_apikey = HashApiKey(apikey);
+            if (_ApiKeys.TryGetValue(hashed_apikey, out user))
+                return user;
+            return null;
+        }
 
-		// replace ALL api keys
-		public virtual void ReplaceApiKeys(Dictionary<string, ApiUser> apikeys)
-		{
+        // replace ALL api keys
+        public virtual void ReplaceApiKeys(Dictionary<string, ApiUser> apikeys)
+        {
             _ApiKeys.Clear();
             foreach (var key in apikeys.Keys)
             {
                 _ApiKeys[key] = apikeys[key];
             }
-		}
+        }
 
-		public abstract void ReLoadApiKeys();
-		public abstract string GenerateApiKey();
-		public abstract string HashApiKey(string apikey);
+        public abstract void ReLoadApiKeys();
+        public abstract string GenerateApiKey();
+        public abstract string HashApiKey(string apikey);
 
-	}
-
-
-	public class ApiKeyAuthHandler : AuthenticationHandler<ApiKeyAuthOptions>
-	{
-		public IServiceProvider ServiceProvider { get; set; }
-
-		private readonly ILogger<ApiKeyAuthHandler> _logger;
-		private readonly IApiKeyService _ApiKeyService;
-
-		public ApiKeyAuthHandler(IOptionsMonitor<ApiKeyAuthOptions> options
-			, ILoggerFactory logger, UrlEncoder encoder //, ISystemClock clock
-			, IServiceProvider serviceProvider
-			, IApiKeyService ApiKeyService
-			)
-				: base(options, logger, encoder) //, clock)
-		{
-			ServiceProvider = serviceProvider;
-			_logger = logger.CreateLogger<ApiKeyAuthHandler>();
-			_ApiKeyService = ApiKeyService;
-		}
-
-		// can't seem to return actual content 
-
-		protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
-		{
-			//Response.WriteAsync(failedReason);
-			//properties.RedirectUri = "/home/noapikey";
-			await base.HandleChallengeAsync(properties);
-		}
-
-		protected override async Task HandleForbiddenAsync(AuthenticationProperties properties)
-		{
-			await base.HandleForbiddenAsync(properties);
-		}
+    }
 
 
-		public static string FetchToken(HttpRequest request)
-		{
-			var token = "";
-			if (request.Headers.ContainsKey(ApiKeyAuthOptions.HeaderName))
-				token = request.Headers[ApiKeyAuthOptions.HeaderName];
-			//else if (Request.Cookies.ContainsKey(TokenAuthenticationOptions.CookieName)) NO!
-			//	token = Request.Cookies[TokenAuthenticationOptions.CookieName];
-			else if (request.Query.ContainsKey(ApiKeyAuthOptions.UrlParamName))
-				token = request.Query[ApiKeyAuthOptions.UrlParamName];
-			return token;
-		}
+    public class ApiKeyAuthHandler : AuthenticationHandler<ApiKeyAuthOptions>
+    {
+        public IServiceProvider ServiceProvider { get; set; }
 
-		protected override Task<AuthenticateResult> HandleAuthenticateAsync()
-		{
+        private readonly ILogger<ApiKeyAuthHandler> _logger;
+        private readonly IApiKeyService _ApiKeyService;
+
+        public ApiKeyAuthHandler(IOptionsMonitor<ApiKeyAuthOptions> options
+            , ILoggerFactory logger, UrlEncoder encoder //, ISystemClock clock
+            , IServiceProvider serviceProvider
+            , IApiKeyService ApiKeyService
+            )
+                : base(options, logger, encoder) //, clock)
+        {
+            ServiceProvider = serviceProvider;
+            _logger = logger.CreateLogger<ApiKeyAuthHandler>();
+            _ApiKeyService = ApiKeyService;
+        }
+
+        // can't seem to return actual content 
+
+        protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
+        {
+            //Response.WriteAsync(failedReason);
+            //properties.RedirectUri = "/home/noapikey";
+            await base.HandleChallengeAsync(properties);
+        }
+
+        protected override async Task HandleForbiddenAsync(AuthenticationProperties properties)
+        {
+            await base.HandleForbiddenAsync(properties);
+        }
+
+
+        public static string FetchToken(HttpRequest request)
+        {
+            var token = "";
+            if (request.Headers.ContainsKey(ApiKeyAuthOptions.HeaderName))
+                token = request.Headers[ApiKeyAuthOptions.HeaderName];
+            //else if (Request.Cookies.ContainsKey(TokenAuthenticationOptions.CookieName)) NO!
+            //	token = Request.Cookies[TokenAuthenticationOptions.CookieName];
+            else if (request.Query.ContainsKey(ApiKeyAuthOptions.UrlParamName))
+                token = request.Query[ApiKeyAuthOptions.UrlParamName];
+            return token;
+        }
+
+        protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+        {
             if (!OriginalPath.StartsWithSegments("/api"))
                 return Task.FromResult(AuthenticateResult.NoResult());
 
-			var token = FetchToken(Request);
-			if (string.IsNullOrEmpty(token))
-			{
-				//return AuthenticateResult.Fail("no token");
-				return Task.FromResult(AuthenticateResult.NoResult());
-			}
+            var token = FetchToken(Request);
+            if (string.IsNullOrEmpty(token))
+            {
+                //return AuthenticateResult.Fail("no token");
+                return Task.FromResult(AuthenticateResult.NoResult());
+            }
 
-			// check for the user session
+            // check for the user session
 
-			ApiUser user = _ApiKeyService.FetchApiUser(token);
-			if (user == null)
-			{
-				return Task.FromResult(AuthenticateResult.Fail("no creds found for token"));
-			}
+            ApiUser user = _ApiKeyService.FetchApiUser(token);
+            if (user == null)
+            {
+                return Task.FromResult(AuthenticateResult.Fail("no creds found for token"));
+            }
 
-			// the only claim required is Role, maybe Name
+            // the only claim required is Role, maybe Name
 
-			var claims = new List<Claim> { new Claim("token", token), new Claim(ClaimTypes.Name, user.Name), new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()) };
-			foreach (var role in user.Role.Split(','))
-				claims.Add(new Claim(ClaimTypes.Role, role));
+            var claims = new List<Claim> { new Claim("token", token), new Claim(ClaimTypes.Name, user.Name), new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()) };
+            foreach (var role in user.Role.Split(','))
+                claims.Add(new Claim(ClaimTypes.Role, role));
 
-			var identity = new ClaimsIdentity(claims, nameof(ApiKeyAuthHandler));
-			var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), this.Scheme.Name);
-			return Task.FromResult(AuthenticateResult.Success(ticket));
-		}
-	}
+            var identity = new ClaimsIdentity(claims, nameof(ApiKeyAuthHandler));
+            var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), this.Scheme.Name);
+            return Task.FromResult(AuthenticateResult.Success(ticket));
+        }
+    }
 
 
 }
