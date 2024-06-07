@@ -20,8 +20,9 @@ namespace Common.Services
 		string GetVal(string key);
 		string MakeMD5(string input, string salt_val = "");
 		public string HashPassword(string provided_pw, string salt_val = null);
+        public byte[] HashPasswordBytes(string provided_pw, string salt_val = null);
 
-		public string LegacyHashPassword(string provided_pw, string salt_val = null);
+        public string LegacyHashPassword(string provided_pw, string salt_val = null);
 	}
 
 	public class CipherService : ICipherService
@@ -128,17 +129,21 @@ namespace Common.Services
 
 		public string HashPassword(string provided_pw, string salt_val = null)
 		{
-			string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+			return Convert.ToBase64String(HashPasswordBytes(provided_pw, salt_val));
+		}
+
+
+		public byte[] HashPasswordBytes(string provided_pw, string salt_val = null)
+		{
+			return KeyDerivation.Pbkdf2(
 					   password: provided_pw,
 					   salt: Encoding.ASCII.GetBytes(salt_val ?? _DefaultSalt),
 					   prf: KeyDerivationPrf.HMACSHA256, //.HMACSHA1,
 					   iterationCount: 10000,
-					   numBytesRequested: 256 / 8));
-
-			return hashed;
+					   numBytesRequested: 256 / 8);
 		}
 
-		public string Encrypt(string input)
+        public string Encrypt(string input)
 		{
 			try
 			{
