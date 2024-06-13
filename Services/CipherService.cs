@@ -22,7 +22,7 @@ namespace Common.Services
 		public string HashPassword(string provided_pw, string salt_val = null);
         public byte[] HashPasswordBytes(string provided_pw, string salt_val = null);
 
-        public string LegacyHashPassword(string provided_pw, string salt_val = null);
+        //public string LegacyHashPassword(string provided_pw, string salt_val = null);
 	}
 
 	public class CipherService : ICipherService
@@ -116,7 +116,8 @@ namespace Common.Services
 			}
 
 		}
-
+        
+        /*
 		public string LegacyHashPassword(string provided_pw, string salt_val = null)
 		{
 			var hasher = new SHA256Managed();
@@ -124,7 +125,7 @@ namespace Common.Services
 			var s = Convert.ToBase64String(bytes);
 			return s;
 		}
-
+        */
 
 
 		public string HashPassword(string provided_pw, string salt_val = null)
