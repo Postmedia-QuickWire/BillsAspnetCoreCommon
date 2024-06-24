@@ -52,6 +52,7 @@ namespace Common.Classes
         public string Claim_TokenRefreshedDate { get; set; }
         public string Claim_RefreshTokenHash { get; set; }
         public string HashSalt { get; set; }
+        public bool VerboseLog { get; set; } = false; // log token and refreshes
     }
 
     public class TokenResponse
@@ -194,8 +195,8 @@ namespace Common.Classes
             if (tok_req.ClientId.Contains('<') || tok_req.ClientSecret.Contains('<'))
                 throw new ApiTokenException("invalid token request contains <");
 
-
-            _logger.LogInformation("NewToken Request: clientId=[{clientId}]", tok_req.ClientId);
+            if (_jwtSettings.VerboseLog)
+                _logger.LogInformation("NewToken Request: clientId=[{clientId}]", tok_req.ClientId);
 
             if (string.IsNullOrWhiteSpace(tok_req.ClientId) || string.IsNullOrWhiteSpace(tok_req.ClientSecret))
                 throw new ApiTokenException("invalid token request params");
@@ -243,9 +244,11 @@ namespace Common.Classes
 
             await OnNewToken(user, resp);
 
-            _logger.LogInformation("Created new token for '{name}/{accid}:{clientId}', roles: {roles}, tok uid: {tokid}"
+            if (_jwtSettings.VerboseLog)
+            {
+                _logger.LogInformation("Created new token for '{name}/{accid}:{clientId}', roles: {roles}, tok uid: {tokid}"
                 , user.Name, user.TokenAccountId, user.TokenUserId, String.Join(", ", user.GetAllRoles()), tok_req.ClientId);
-
+            }
 
             return resp;
         }
@@ -338,10 +341,11 @@ namespace Common.Classes
             //_logger.LogInformation("Refreshed token for '{clientId}'", clientId);
 
             // may be too noisy...
-            _logger.LogInformation("Refreshed token for '{name}/{accid}:{clientId}', roles: {roles}, [tok uid: {tokid}]"
+            if (_jwtSettings.VerboseLog)
+            {
+                _logger.LogInformation("Refreshed token for '{name}/{accid}:{clientId}', roles: {roles}, [tok uid: {tokid}]"
                 , user.Name, user.TokenAccountId, user.TokenUserId, String.Join(", ", user.GetAllRoles()), clientId);
-
-
+            }
 
 
             return resp;
