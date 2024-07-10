@@ -25,7 +25,7 @@ namespace Common.Classes
 	public class SwaggerAuthorizedMiddleware
 	{
 		private readonly RequestDelegate _next;
-        private readonly string _redirectUrl = "/login";
+        //private readonly string _redirectUrl = "/login";
 		public SwaggerAuthorizedMiddleware(RequestDelegate next) //, string redirectUrl)
 		{
 			_next = next;
