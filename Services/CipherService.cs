@@ -22,7 +22,7 @@ namespace Common.Services
 		public string HashPassword(string provided_pw, string salt_val = null);
         public byte[] HashPasswordBytes(string provided_pw, string salt_val = null);
 
-        //public string LegacyHashPassword(string provided_pw, string salt_val = null);
+        public string LegacyHashPassword(string provided_pw, string salt_val = null);
 	}
 
 	public class CipherService : ICipherService
@@ -116,19 +116,19 @@ namespace Common.Services
 			}
 
 		}
-        
-        /*
-		public string LegacyHashPassword(string provided_pw, string salt_val = null)
+
+#pragma warning disable SYSLIB0021
+        public string LegacyHashPassword(string provided_pw, string salt_val = null)
 		{
 			var hasher = new SHA256Managed();
 			var bytes = hasher.ComputeHash(Encoding.ASCII.GetBytes(provided_pw + salt_val));
 			var s = Convert.ToBase64String(bytes);
 			return s;
 		}
-        */
+#pragma warning restore SYSLIB0021
 
 
-		public string HashPassword(string provided_pw, string salt_val = null)
+        public string HashPassword(string provided_pw, string salt_val = null)
 		{
 			return Convert.ToBase64String(HashPasswordBytes(provided_pw, salt_val));
 		}
